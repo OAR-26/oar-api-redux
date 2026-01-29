@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 axum = "0.8.8"
+dotenvy = "0.15.7"
 oar-domain = { version = "0.1.0", path = "../oar-domain" }
 oar-infrastructure = { version = "0.1.0", path = "../oar-infrastructure" }
 serde = { version = "1.0", features = ["derive"] }
