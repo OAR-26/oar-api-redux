@@ -1,12 +1,12 @@
 use schemars::JsonSchema;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-// #[derive(Deserialize, JsonSchema)]
-// pub struct RegisterRequest {
-//     pub username: String,
-//     pub email: String,
-//     pub password: String,
-// }
+#[derive(Deserialize, JsonSchema)]
+pub struct UserPath {
+    // this will be picked up with swagger ;)
+    /// The unique UUID of the user
+    pub id: uuid::Uuid,
+}
 
 #[derive(Serialize, JsonSchema)]
 pub struct UserResponse {

@@ -1,4 +1,4 @@
-use super::dtos::UserResponse;
+use super::dtos::{UserPath, UserResponse};
 use axum::{
     Json,
     extract::{Path, State},
@@ -10,11 +10,11 @@ use std::sync::Arc;
 use aide::transform::TransformOperation;
 
 pub async fn handler(
-    Path(id): Path<uuid::Uuid>,
+    Path(path): Path<UserPath>,
     State(repo): State<Arc<dyn UserRepository>>,
 ) -> Result<Json<UserResponse>, StatusCode> {
     let user = repo
-        .find_by_id(id)
+        .find_by_id(path.id)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .ok_or(StatusCode::NOT_FOUND)?;
@@ -26,8 +26,15 @@ pub async fn handler(
     }))
 }
 
+// manual doc example
 pub fn docs(op: TransformOperation) -> TransformOperation {
-    op.description("Get user")
+    op.summary("Get user by ID")
+        .description("Retrieve a detailed user profile by their unique UUID from the database.")
+        .tag("Users")
         .response::<200, Json<UserResponse>>()
-        .response::<404, ()>() // Tells Aide 404 is a possible exit
+        // Document possible errors
+        .response_with::<404, (), _>(|res| res.description("User not found in the system"))
+        .response_with::<500, (), _>(|res| {
+            res.description("Internal server error - something went wrong on our end")
+        })
 }
