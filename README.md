@@ -1,0 +1,45 @@
+# --- Rust / Cargo ---
+
+/target/ \*_/_.rs.bk
+Cargo.lock
+
+# If this is a binary/app repo, KEEP Cargo.lock
+
+# If this is a library crate, uncomment the next line
+
+# !Cargo.lock
+
+# --- Environment variables ---
+
+.env
+.env.\*
+!.env.example
+
+# --- Logs ---
+
+\*.log
+
+# --- OS junk ---
+
+.DS_Store
+Thumbs.db
+
+# --- IDEs / Editors ---
+
+.idea/
+.vscode/
+_.swp
+_.swo
+
+# --- Rust analyzer ---
+
+/.rust-analyzer/
+
+# --- Coverage / profiling ---
+
+/coverage/
+/tarpaulin-report.html
+
+# --- Docker ---
+
+docker-compose.override.yml
