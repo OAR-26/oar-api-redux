@@ -1,3 +1,4 @@
+use aide::axum::{ApiRouter,  routing::get_with};
 use axum::{
     Router,
     routing::{get, post},
@@ -10,8 +11,8 @@ mod get_user;
 mod login;
 mod register;
 
-pub fn router() -> Router<Arc<dyn UserRepository>> {
-    Router::new()
-        .route("/", post(register::handler))
-        .route("/{id}", get(get_user::handler))
+pub fn router() -> ApiRouter<Arc<dyn UserRepository>> {
+    ApiRouter::new()
+        // .route("/", post(register::handler))
+        .api_route("/{id}", get_with(get_user::handler, get_user::docs))
 }

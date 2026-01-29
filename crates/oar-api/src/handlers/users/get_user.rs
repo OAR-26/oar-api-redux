@@ -7,6 +7,8 @@ use axum::{
 use oar_domain::users::ports::UserRepository;
 use std::sync::Arc;
 
+use aide::transform::TransformOperation;
+
 pub async fn handler(
     Path(id): Path<uuid::Uuid>,
     State(repo): State<Arc<dyn UserRepository>>,
@@ -22,4 +24,10 @@ pub async fn handler(
         username: user.username,
         email: user.email,
     }))
+}
+
+pub fn docs(op: TransformOperation) -> TransformOperation {
+    op.description("Get user")
+        .response::<200, Json<UserResponse>>()
+        .response::<404, ()>() // Tells Aide 404 is a possible exit
 }
