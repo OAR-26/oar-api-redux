@@ -1,9 +1,9 @@
 use aide::{
     axum::{
         ApiRouter, IntoApiResponse,
-        routing::{get, post},
+        routing::get,
     },
-    openapi::{Info, OpenApi},
+    openapi::OpenApi,
     swagger::Swagger,
 };
 use axum::{Extension, Json};

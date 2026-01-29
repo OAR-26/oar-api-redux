@@ -1,8 +1,4 @@
-use aide::axum::{ApiRouter,  routing::get_with};
-use axum::{
-    Router,
-    routing::{get, post},
-};
+use aide::axum::{ApiRouter, routing::get_with};
 use oar_domain::users::ports::UserRepository;
 use std::sync::Arc;
 
