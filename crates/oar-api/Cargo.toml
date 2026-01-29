@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-aide = { version = "0.15.1", features = ["axum","axum-json","swagger"] }
+aide = { version = "0.15.1", features = ["axum","axum-json","swagger","scalar"] }
 axum = "0.8.8"
 dotenvy = "0.15.7"
 oar-domain = { version = "0.1.0", path = "../oar-domain" }

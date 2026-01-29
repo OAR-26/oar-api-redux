@@ -41,6 +41,9 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
 
     tracing::info!("🚀 Server ready at http://{}", addr);
+    tracing::info!("🔎 Deep dive into the api with Scalar http://{}/docs", addr);
+    tracing::info!("😏 If you refer Swagger instead: http://{}/docs/swagger", addr);
+
     axum::serve(listener, app.finish_api(&mut api).layer(Extension(api)))
         .await
         .unwrap();
