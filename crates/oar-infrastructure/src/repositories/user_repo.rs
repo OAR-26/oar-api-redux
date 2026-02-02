@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use oar_domain::users::{models::User, ports::UserRepository};
+use oar_domain::user::{models::User, ports::UserRepository};
 use uuid::Uuid;
 pub struct PostgresUserRepository {
     // should be a real db pool;

@@ -1,7 +1,7 @@
 use crate::config::Config;
 use aide::openapi::{Info, OpenApi};
 use axum::Extension;
-use oar_domain::users::ports::UserRepository;
+use oar_domain::user::ports::UserRepository;
 use oar_infrastructure::repositories::user_repo::PostgresUserRepository;
 use std::sync::Arc;
 use tower_http::trace::TraceLayer;

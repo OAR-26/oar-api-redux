@@ -4,7 +4,7 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
-use oar_domain::users::ports::UserRepository;
+use oar_domain::user::ports::UserRepository;
 use std::sync::Arc;
 
 use aide::transform::TransformOperation;

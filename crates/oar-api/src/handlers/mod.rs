@@ -5,7 +5,7 @@ use aide::{
     swagger::Swagger,
 };
 use axum::{Extension, Json};
-use oar_domain::users::ports::UserRepository;
+use oar_domain::user::ports::UserRepository;
 use std::sync::Arc;
 mod users;
 

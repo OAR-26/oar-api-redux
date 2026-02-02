@@ -1,5 +1,5 @@
 use aide::axum::{ApiRouter, routing::get_with};
-use oar_domain::users::ports::UserRepository;
+use oar_domain::user::ports::UserRepository;
 use std::sync::Arc;
 
 pub mod dtos;
