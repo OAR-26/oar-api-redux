@@ -5,7 +5,7 @@ use aide::{
     swagger::Swagger,
 };
 use axum::{Extension, Json};
-use oar_domain::user::ports::UserRepository;
+use oar_domain::user::ports::{UserRepository, PasswordService, TokenService};
 use std::sync::Arc;
 mod users;
 
@@ -13,7 +13,7 @@ async fn serve_api(Extension(api): Extension<OpenApi>) -> impl IntoApiResponse {
     Json(api)
 }
 
-pub fn app_router() -> ApiRouter<Arc<dyn UserRepository>> {
+pub fn app_router() -> ApiRouter<(Arc<dyn UserRepository>, Arc<dyn PasswordService>, Arc<dyn TokenService>)> {
     ApiRouter::new()
         .route("/docs", Scalar::new("/api.json").axum_route())
         .route("/docs/swagger", Swagger::new("/api.json").axum_route())

@@ -8,3 +8,5 @@ async-trait = "0.1.89"
 chrono = "0.4.43"
 thiserror = "2.0.18"
 uuid = "1.20.0"
+serde = { version = "1.0", features = ["derive"] }
+

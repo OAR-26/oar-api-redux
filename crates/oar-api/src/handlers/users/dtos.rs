@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, JsonSchema)]
 pub struct UserPath {
-    // this will be picked up with swagger ;)
+    // the comment bellow will be picked up with swagger ;)
     /// The unique UUID of the user
     pub id: uuid::Uuid,
 }
@@ -13,4 +13,15 @@ pub struct UserResponse {
     pub id: uuid::Uuid,
     pub username: String,
     pub email: String,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct LoginRequest {
+    pub email: String,
+    pub password: String,
+}
+
+#[derive(Serialize, JsonSchema)]
+pub struct AuthResponse {
+    pub token: String,
 }

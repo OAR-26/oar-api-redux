@@ -4,16 +4,17 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
-use oar_domain::user::ports::UserRepository;
+use oar_domain::user::ports::{UserRepository, PasswordService, TokenService};
 use std::sync::Arc;
 
 use aide::transform::TransformOperation;
 
 pub async fn handler(
     Path(path): Path<UserPath>,
-    State(repo): State<Arc<dyn UserRepository>>,
+    State(state): State<(Arc<dyn UserRepository>, Arc<dyn PasswordService>, Arc<dyn TokenService>)>,
 ) -> Result<Json<UserResponse>, StatusCode> {
-    let user = repo
+    let (user_repo, _, _) = state;
+    let user = user_repo
         .find_by_id(path.id)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
