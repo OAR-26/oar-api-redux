@@ -8,18 +8,29 @@ use oar_domain::user::ports::{UserRepository, PasswordService, TokenService};
 use std::sync::Arc;
 
 use aide::transform::TransformOperation;
+use tracing::{info, error, warn};
 
 pub async fn handler(
     Path(path): Path<UserPath>,
     State(state): State<(Arc<dyn UserRepository>, Arc<dyn PasswordService>, Arc<dyn TokenService>)>,
 ) -> Result<Json<UserResponse>, StatusCode> {
     let (user_repo, _, _) = state;
+    
+    info!("Fetching user with ID: {}", path.id);
+    
     let user = user_repo
         .find_by_id(path.id)
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::NOT_FOUND)?;
+        .map_err(|e| {
+            error!("Database error while fetching user {}: {}", path.id, e);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?
+        .ok_or_else(|| {
+            warn!("User not found: {}", path.id);
+            StatusCode::NOT_FOUND
+        })?;
 
+    info!("Successfully retrieved user: {} ({})", user.username, user.email);
     Ok(Json(UserResponse {
         id: user.id,
         username: user.username,

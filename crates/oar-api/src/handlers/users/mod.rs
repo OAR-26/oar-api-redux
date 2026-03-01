@@ -17,5 +17,6 @@ pub fn router() -> ApiRouter<(
 )> {
     ApiRouter::new()
         .api_route("/login", post_with(login::handler, login::docs))
+        .api_route("/register", post_with(register::handler, register::docs))
         .api_route("/{id}", get_with(get_user::handler, get_user::docs))
 }

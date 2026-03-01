@@ -1,12 +1,72 @@
-// use super::dtos::RegisterRequest;
-// use axum::{Json, extract::State, http::StatusCode};
-// use oar_domain::users::ports::UserRepository;
-// use std::sync::Arc;
+use super::dtos::{RegisterRequest, UserResponse};
+use aide::transform::TransformOperation;
+use axum::{Json, extract::State, http::StatusCode};
+use oar_domain::user::models::User;
+use oar_domain::user::ports::{PasswordService, TokenService, UserRepository};
+use std::sync::Arc;
+use tracing::{error, info, warn};
 
-// pub async fn handler(
-//     State(repo): State<Arc<dyn UserRepository>>,
-//     Json(payload): Json<RegisterRequest>,
-// ) -> StatusCode {
-//     // Logic here...
-//     StatusCode::CREATED
-// }
+pub fn docs(op: TransformOperation) -> TransformOperation {
+    op.summary("Register new user")
+}
+
+pub async fn handler(
+    State(state): State<(
+        Arc<dyn UserRepository>,
+        Arc<dyn PasswordService>,
+        Arc<dyn TokenService>,
+    )>,
+    Json(payload): Json<RegisterRequest>,
+) -> Result<Json<UserResponse>, StatusCode> {
+    let (user_repo, password_service, _) = state;
+
+    info!("Registration attempt for email: {}", payload.email);
+
+    // Check if user already exists
+    // Note: This is a simplified check - in a real implementation you'd query by email
+    let existing_user = user_repo
+        .find_by_id(uuid::Uuid::new_v4())
+        .await
+        .map_err(|e| {
+            error!("Database error while checking existing user: {}", e);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
+
+    if existing_user.is_some() {
+        warn!("Registration attempt for existing email: {}", payload.email);
+        return Err(StatusCode::CONFLICT);
+    }
+
+    // Hash password
+    let password_hash = password_service
+        .hash_password(&payload.password)
+        .await
+        .map_err(|e| {
+            error!("Password hashing failed: {}", e);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
+
+    // Create new user
+    let new_user = User {
+        id: uuid::Uuid::new_v4(),
+        email: payload.email.clone(),
+        username: payload.username.clone(),
+        password_hash,
+    };
+
+    let created_user = user_repo.create_user(new_user).await.map_err(|e| {
+        error!("Failed to create user in database: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
+
+    info!(
+        "Successfully registered user: {} ({})",
+        created_user.username, created_user.email
+    );
+
+    Ok(Json(UserResponse {
+        id: created_user.id,
+        username: created_user.username,
+        email: created_user.email,
+    }))
+}

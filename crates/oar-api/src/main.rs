@@ -13,7 +13,20 @@ mod handlers;
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt::init();
+    // Configure logging for development mode
+    if std::env::var("RUST_LOG").is_err() {
+        unsafe {
+            std::env::set_var("RUST_LOG", "oar_api=debug,axum=debug,sqlx=debug");
+        }
+    }
+    
+    tracing_subscriber::fmt()
+        .with_target(true)
+        .with_line_number(true)
+        .with_thread_ids(true)
+        .with_thread_names(true)
+        .with_file(true)
+        .init();
 
     let config = Config::from_env();
 

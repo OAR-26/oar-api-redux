@@ -21,6 +21,13 @@ pub struct LoginRequest {
     pub password: String,
 }
 
+#[derive(Deserialize, JsonSchema)]
+pub struct RegisterRequest {
+    pub email: String,
+    pub username: String,
+    pub password: String,
+}
+
 #[derive(Serialize, JsonSchema)]
 pub struct AuthResponse {
     pub token: String,
