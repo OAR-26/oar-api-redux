@@ -1,29 +1,29 @@
 use super::dtos::{AuthResponse, LoginRequest};
+use crate::state::AppState;
 use aide::transform::TransformOperation;
 use axum::{Json, extract::State, http::StatusCode};
 use oar_domain::user::ports::{PasswordService, TokenService, UserRepository};
 use std::sync::Arc;
-use tracing::{info, error, warn};
+use tracing::{error, info, warn};
 
 pub fn docs(op: TransformOperation) -> TransformOperation {
-    op.summary("Login ?")
+    op.summary("Login")
 }
 
 pub async fn handler(
-    State(state): State<(
-        Arc<dyn UserRepository>,
-        Arc<dyn PasswordService>,
-        Arc<dyn TokenService>,
-    )>,
+    State(state): State<AppState>,
     Json(payload): Json<LoginRequest>,
 ) -> Result<Json<AuthResponse>, StatusCode> {
-    let (user_repo, password_service, token_service) = state;
+    let AppState {
+        user_repo,
+        password_service,
+        token_service,
+    } = state;
 
     info!("Login attempt for email: {}", payload.email);
 
-    // Find user by email (simplified for now)
     let user = user_repo
-        .find_by_id(uuid::Uuid::new_v4())
+        .find_by_email(&payload.email)
         .await
         .map_err(|e| {
             error!("Database error while finding user: {}", e);
@@ -49,13 +49,10 @@ pub async fn handler(
     }
 
     // Generate JWT token
-    let token = token_service
-        .generate_token(user.id)
-        .await
-        .map_err(|e| {
-            error!("Token generation error: {}", e);
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?;
+    let token = token_service.generate_token(user.id).await.map_err(|e| {
+        error!("Token generation error: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
 
     info!("Successful login for user: {}", payload.email);
     Ok(Json(AuthResponse { token }))

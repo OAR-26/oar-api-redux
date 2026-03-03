@@ -1,51 +1,39 @@
+use aide::operation::OperationIo;
 use axum::{
-    async_trait,
-    extract::{FromRequestParts, State},
-    http::{request::Parts, StatusCode},
+    extract::{FromRef, FromRequestParts, Request},
+    http::{StatusCode, request::Parts},
+    middleware::Next,
     response::Response,
 };
 use oar_domain::user::ports::TokenService;
-use oar_domain::user::models::Claims;
 use std::sync::Arc;
-use tracing::{info, error, warn};
+use tracing::{error, info, warn};
 
+#[derive(OperationIo)]
 pub struct CurrentUser {
     pub user_id: uuid::Uuid,
     pub role: String,
 }
 
-#[async_trait]
 impl<S> FromRequestParts<S> for CurrentUser
 where
-    Arc<dyn TokenService>: FromRef<S>,
     S: Send + Sync,
+    Arc<dyn TokenService>: FromRef<S>,
 {
     type Rejection = StatusCode;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let token_service = Arc::<dyn TokenService>::from_ref(state);
 
-        let auth_header = parts.headers
-            .get("authorization")
-            .and_then(|header| header.to_str().ok())
-            .ok_or_else(|| {
-                warn!("Missing authorization header");
-                StatusCode::UNAUTHORIZED
-            })?;
+        let token = extract_bearer_token(parts.headers.get("authorization")).ok_or_else(|| {
+            warn!("Missing or malformed authorization header");
+            StatusCode::UNAUTHORIZED
+        })?;
 
-        if !auth_header.starts_with("Bearer ") {
-            warn!("Invalid authorization header format: {}", auth_header);
-            return Err(StatusCode::UNAUTHORIZED);
-        }
-
-        let token = &auth_header[7..];
-        info!("Verifying token for authentication");
-        
-        let claims = token_service.verify_token(token).await
-            .map_err(|e| {
-                error!("Token verification failed: {}", e);
-                StatusCode::UNAUTHORIZED
-            })?;
+        let claims = token_service.verify_token(token).await.map_err(|e| {
+            error!("Token verification failed: {}", e);
+            StatusCode::UNAUTHORIZED
+        })?;
 
         info!("Token verified successfully for user: {}", claims.sub);
         Ok(CurrentUser {
@@ -55,33 +43,37 @@ where
     }
 }
 
-pub async fn auth_middleware<B>(
-    State(token_service): State<Arc<dyn TokenService>>,
-    req: axum::extract::Request<B>,
-    next: axum::middleware::Next<B>,
-) -> Result<Response, StatusCode> {
-    let auth_header = req.headers()
-        .get("authorization")
-        .and_then(|header| header.to_str().ok())
-        .ok_or_else(|| {
-            warn!("Missing authorization header in middleware");
-            StatusCode::UNAUTHORIZED
-        })?;
+// Factory — captures token_service, returns a closure axum can use with from_fn
+pub fn auth_middleware(
+    token_service: Arc<dyn TokenService>,
+) -> impl Fn(
+    Request,
+    Next,
+)
+    -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<Response, StatusCode>> + Send>>
++ Clone {
+    move |req: Request, next: Next| {
+        let token_service = token_service.clone();
+        Box::pin(async move {
+            let token =
+                extract_bearer_token(req.headers().get("authorization")).ok_or_else(|| {
+                    warn!("Missing or malformed authorization header in middleware");
+                    StatusCode::UNAUTHORIZED
+                })?;
 
-    if !auth_header.starts_with("Bearer ") {
-        warn!("Invalid authorization header format in middleware: {}", auth_header);
-        return Err(StatusCode::UNAUTHORIZED);
+            token_service.verify_token(token).await.map_err(|e| {
+                error!("Token verification failed in middleware: {}", e);
+                StatusCode::UNAUTHORIZED
+            })?;
+
+            info!("Token verified successfully in middleware");
+            Ok(next.run(req).await)
+        })
     }
+}
 
-    let token = &auth_header[7..];
-    info!("Verifying token in middleware");
-    
-    let _claims = token_service.verify_token(token).await
-        .map_err(|e| {
-            error!("Token verification failed in middleware: {}", e);
-            StatusCode::UNAUTHORIZED
-        })?;
-
-    info!("Token verified successfully in middleware");
-    Ok(next.run(req).await)
+fn extract_bearer_token(header: Option<&axum::http::HeaderValue>) -> Option<&str> {
+    header
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| s.strip_prefix("Bearer "))
 }

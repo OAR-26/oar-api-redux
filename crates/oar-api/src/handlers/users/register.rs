@@ -1,4 +1,5 @@
 use super::dtos::{RegisterRequest, UserResponse};
+use crate::state::AppState;
 use aide::transform::TransformOperation;
 use axum::{Json, extract::State, http::StatusCode};
 use oar_domain::user::models::User;
@@ -11,14 +12,10 @@ pub fn docs(op: TransformOperation) -> TransformOperation {
 }
 
 pub async fn handler(
-    State(state): State<(
-        Arc<dyn UserRepository>,
-        Arc<dyn PasswordService>,
-        Arc<dyn TokenService>,
-    )>,
+    State(state): State<AppState>,
     Json(payload): Json<RegisterRequest>,
 ) -> Result<Json<UserResponse>, StatusCode> {
-    let (user_repo, password_service, _) = state;
+    let AppState { user_repo, password_service, .. } = state;
 
     info!("Registration attempt for email: {}", payload.email);
 

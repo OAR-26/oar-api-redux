@@ -1,6 +1,7 @@
 use crate::config::Config;
-use aide::openapi::{Info, OpenApi};
+use aide::openapi::{Info, OpenApi, ReferenceOr};
 use axum::Extension;
+use indexmap::IndexMap;
 use oar_domain::user::ports::{PasswordService, TokenService, UserRepository};
 use oar_infrastructure::database::create_pool;
 use oar_infrastructure::repositories::user_repo::PostgresUserRepository;
@@ -9,8 +10,12 @@ use oar_infrastructure::services::password_service::Argon2PasswordService;
 use std::sync::Arc;
 use tower_http::trace::TraceLayer;
 
+use aide::openapi::SecurityScheme;
+
 mod config;
 mod handlers;
+mod middleware;
+mod state;
 
 #[tokio::main]
 async fn main() {
@@ -51,9 +56,11 @@ async fn main() {
     let password_service = Argon2PasswordService;
     let password_service_state: Arc<dyn PasswordService> = Arc::new(password_service);
 
-    let app = handlers::app_router()
-        .layer(TraceLayer::new_for_http())
-        .with_state((user_repo_state, password_service_state, jwt_service_state));
+    let app_state = crate::state::AppState {
+        user_repo: user_repo_state,
+        password_service: password_service_state,
+        token_service: jwt_service_state,
+    };
 
     let mut api = OpenApi {
         info: Info {
@@ -63,6 +70,22 @@ async fn main() {
         },
         ..OpenApi::default()
     };
+
+    let mut security_schemes: IndexMap<String, ReferenceOr<SecurityScheme>> = IndexMap::new();
+
+    security_schemes.insert(
+        "bearerAuth".to_string(),
+        ReferenceOr::Item(SecurityScheme::Http {
+            scheme: "bearer".to_string(),
+            bearer_format: Some("JWT".to_string()),
+            description: None,
+            extensions: IndexMap::new(),
+        }),
+    );
+
+    api.components
+        .get_or_insert_with(Default::default)
+        .security_schemes = security_schemes;
 
     let addr = format!("{}:{}", config.api_host, config.api_port);
 
@@ -74,6 +97,8 @@ async fn main() {
         "😏 If you refer Swagger instead: http://{}/docs/swagger",
         addr
     );
+
+    let app = handlers::app_router(app_state);
 
     axum::serve(listener, app.finish_api(&mut api).layer(Extension(api)))
         .await
