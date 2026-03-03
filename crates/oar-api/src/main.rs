@@ -1,8 +1,10 @@
 use crate::config::Config;
+use crate::state::AppState;
 use aide::openapi::{Info, OpenApi, ReferenceOr};
 use axum::Extension;
 use indexmap::IndexMap;
-use oar_domain::user::ports::{PasswordService, TokenService, UserRepository};
+use oar_domain::iam::ports::{PasswordService, TokenService};
+use oar_domain::user::ports::UserRepository;
 use oar_infrastructure::database::create_pool;
 use oar_infrastructure::repositories::user_repo::PostgresUserRepository;
 use oar_infrastructure::services::jwt_service::JwtServiceImpl;
@@ -39,28 +41,22 @@ async fn main() {
         "Configuration loaded. Connecting to DB at: {}",
         config.database_url
     );
+    /////////////////////////////////////////////////////////////////////////////////////////////
 
-    // Create database pool
     let pool = create_pool(&config.database_url)
         .await
         .expect("Failed to create database pool");
 
-    let user_repo = PostgresUserRepository::new(pool);
-    let user_repo_state: Arc<dyn UserRepository> = Arc::new(user_repo);
+    let app_state = AppState::new(
+        Arc::new(PostgresUserRepository::new(pool)),
+        Arc::new(Argon2PasswordService),
+        Arc::new(JwtServiceImpl::new(
+            config.jwt_secret.clone(),
+            config.token_expiration_seconds,
+        )),
+    );
 
-    let jwt_service =
-        JwtServiceImpl::new(config.jwt_secret.clone(), config.token_expiration_seconds);
-    let jwt_service_state: Arc<dyn TokenService> = Arc::new(jwt_service);
-
-    let password_service = Argon2PasswordService;
-    let password_service_state: Arc<dyn PasswordService> = Arc::new(password_service);
-
-    let app_state = crate::state::AppState {
-        user_repo: user_repo_state,
-        password_service: password_service_state,
-        token_service: jwt_service_state,
-    };
-
+    /////////////////////////////////////////////////////////////////////////////////////////////
     let mut api = OpenApi {
         info: Info {
             title: "OAR 3 API".to_string(),
@@ -93,7 +89,7 @@ async fn main() {
     tracing::info!("🚀 Server ready at http://{}", addr);
     tracing::info!("🔎 Deep dive into the api with Scalar http://{}/docs", addr);
     tracing::info!(
-        "😏 If you refer Swagger instead: http://{}/docs/swagger",
+        "😏 If you prefer Swagger instead: http://{}/docs/swagger",
         addr
     );
 

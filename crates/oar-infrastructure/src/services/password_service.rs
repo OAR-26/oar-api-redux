@@ -2,8 +2,8 @@ use argon2::password_hash::SaltString;
 use argon2::password_hash::rand_core::OsRng;
 use argon2::{Argon2, PasswordHasher, PasswordVerifier};
 use async_trait::async_trait;
-use oar_domain::user::errors::AuthError;
-use oar_domain::user::ports::PasswordService;
+use oar_domain::iam::errors::AuthError;
+use oar_domain::iam::ports::PasswordService;
 
 pub struct Argon2PasswordService;
 

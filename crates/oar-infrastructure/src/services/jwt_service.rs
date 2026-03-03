@@ -1,8 +1,7 @@
-use oar_domain::user::errors::AuthError;
-use oar_domain::user::models::Claims;
-use oar_domain::user::ports::TokenService;
 use async_trait::async_trait;
-use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
+use oar_domain::iam::{errors::AuthError, models::Claims, ports::TokenService};
+
 use time::{Duration, OffsetDateTime};
 
 pub struct JwtServiceImpl {
