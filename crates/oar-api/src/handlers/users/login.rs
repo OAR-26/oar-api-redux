@@ -16,6 +16,7 @@ pub async fn handler(
 ) -> Result<Json<AuthResponse>, StatusCode> {
     let AppState {
         user_repo,
+        api_key_repo,
         password_service,
         token_service,
     } = state;

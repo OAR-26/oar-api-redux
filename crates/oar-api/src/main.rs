@@ -3,7 +3,9 @@ use crate::state::AppState;
 use aide::openapi::{Info, OpenApi, ReferenceOr};
 use axum::Extension;
 use indexmap::IndexMap;
+use oar_domain::iam::ports::ApiKeyRepository;
 use oar_infrastructure::database::create_pool;
+use oar_infrastructure::repositories::iam_repo::PostgresApiKeyRepository;
 use oar_infrastructure::repositories::user_repo::PostgresUserRepository;
 use oar_infrastructure::services::jwt_service::JwtServiceImpl;
 use oar_infrastructure::services::password_service::Argon2PasswordService;
@@ -46,7 +48,8 @@ async fn main() {
         .expect("Failed to create database pool");
 
     let app_state = AppState::new(
-        Arc::new(PostgresUserRepository::new(pool)),
+        Arc::new(PostgresUserRepository::new(pool.clone())),
+        Arc::new(PostgresApiKeyRepository::new(pool.clone())),
         Arc::new(Argon2PasswordService),
         Arc::new(JwtServiceImpl::new(
             config.jwt_secret.clone(),
