@@ -1,6 +1,6 @@
 use sqlx::{PgPool, postgres::PgConnectOptions, ConnectOptions};
 use std::time::Duration;
-use tracing::{info, warn};
+use tracing::info;
 use tracing::log::LevelFilter;
 
 pub async fn create_pool(database_url: &str) -> Result<PgPool, sqlx::Error> {

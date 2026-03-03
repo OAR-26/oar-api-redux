@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use super::*;
+
     use crate::database::create_pool;
     use crate::repositories::user_repo::PostgresUserRepository;
     use oar_domain::user::models::User;
@@ -19,6 +19,7 @@ mod tests {
     ///
     /// Never silently returns — every failure is loud.
     async fn setup_test_db() -> PostgresUserRepository {
+
         let db_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| {
             panic!(
                 "\n\n\
