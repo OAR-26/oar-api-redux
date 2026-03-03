@@ -6,7 +6,7 @@ use tracing::{error, info, warn};
 
 /// Documents the login endpoint for OpenAPI
 pub fn docs(op: TransformOperation) -> TransformOperation {
-    op.summary("Login")
+    op.summary("Login").tag("Public")
 }
 
 /// Handles user login requests
@@ -49,13 +49,10 @@ pub async fn handler(
     }
 
     // Generate JWT token
-    let token = token_service
-        .generate_token(user.id)
-        .await
-        .map_err(|e| {
-            error!("Token generation error: {}", e);
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?;
+    let token = token_service.generate_token(user.id).await.map_err(|e| {
+        error!("Token generation error: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
 
     info!("Successful login for user: {}", payload.email);
     Ok(Json(AuthResponse { token }))

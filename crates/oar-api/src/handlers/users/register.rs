@@ -7,7 +7,7 @@ use tracing::{error, info, warn};
 
 /// Documents the register endpoint for OpenAPI
 pub fn docs(op: TransformOperation) -> TransformOperation {
-    op.summary("Register new user")
+    op.summary("Register new user").tag("Public")
 }
 
 /// Handles user registration requests
@@ -15,7 +15,11 @@ pub async fn handler(
     State(state): State<AppState>,
     Json(payload): Json<RegisterRequest>,
 ) -> Result<Json<UserResponse>, StatusCode> {
-    let AppState { user_repo, password_service, .. } = state;
+    let AppState {
+        user_repo,
+        password_service,
+        ..
+    } = state;
 
     info!("Registration attempt for email: {}", payload.email);
 
