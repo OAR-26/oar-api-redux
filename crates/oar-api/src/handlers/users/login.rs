@@ -2,14 +2,14 @@ use super::dtos::{AuthResponse, LoginRequest};
 use crate::state::AppState;
 use aide::transform::TransformOperation;
 use axum::{Json, extract::State, http::StatusCode};
-use oar_domain::user::ports::{PasswordService, TokenService, UserRepository};
-use std::sync::Arc;
 use tracing::{error, info, warn};
 
+/// Documents the login endpoint for OpenAPI
 pub fn docs(op: TransformOperation) -> TransformOperation {
     op.summary("Login")
 }
 
+/// Handles user login requests
 pub async fn handler(
     State(state): State<AppState>,
     Json(payload): Json<LoginRequest>,
@@ -49,10 +49,13 @@ pub async fn handler(
     }
 
     // Generate JWT token
-    let token = token_service.generate_token(user.id).await.map_err(|e| {
-        error!("Token generation error: {}", e);
-        StatusCode::INTERNAL_SERVER_ERROR
-    })?;
+    let token = token_service
+        .generate_token(user.id)
+        .await
+        .map_err(|e| {
+            error!("Token generation error: {}", e);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
 
     info!("Successful login for user: {}", payload.email);
     Ok(Json(AuthResponse { token }))

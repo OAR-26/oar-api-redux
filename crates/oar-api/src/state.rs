@@ -2,6 +2,7 @@ use axum::extract::FromRef;
 use oar_domain::user::ports::{PasswordService, TokenService, UserRepository};
 use std::sync::Arc;
 
+/// Application state containing all service dependencies
 #[derive(Clone)]
 pub struct AppState {
     pub user_repo: Arc<dyn UserRepository>,

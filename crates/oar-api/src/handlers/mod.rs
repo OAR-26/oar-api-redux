@@ -9,10 +9,12 @@ use axum::{Extension, Json};
 use tower_http::trace::TraceLayer;
 mod users;
 
+/// Serves the OpenAPI specification
 async fn serve_api(Extension(api): Extension<OpenApi>) -> impl IntoApiResponse {
     Json(api)
 }
 
+/// Creates the main application router with all routes and middleware
 pub fn app_router(app_state: AppState) -> ApiRouter {
     ApiRouter::new()
         .route("/docs", Scalar::new("/api.json").axum_route())

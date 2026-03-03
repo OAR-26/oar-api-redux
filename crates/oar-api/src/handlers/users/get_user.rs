@@ -6,10 +6,11 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
-use oar_domain::user::ports::UserRepository; // ← only what's actually used
+use oar_domain::user::ports::UserRepository;
 use std::sync::Arc;
 use tracing::{error, info, warn};
 
+/// Handles requests to get user information by ID
 pub async fn handler(
     current_user: CurrentUser,
     Path(path): Path<UserPath>,
@@ -52,7 +53,7 @@ pub fn docs(op: TransformOperation) -> TransformOperation {
     op.summary("Get user by ID")
         .description("Retrieve a detailed user profile by their unique UUID.")
         .tag("Users")
-        .security_requirement("bearerAuth") // ← must match the key you registered in security_schemes
+        .security_requirement("bearerAuth") //  must match the key you registered in security_schemes
         .response::<200, Json<UserResponse>>()
         .response_with::<401, (), _>(|res| res.description("Missing or invalid token"))
         .response_with::<403, (), _>(|res| res.description("Requesting another user's data"))

@@ -3,14 +3,14 @@ use crate::state::AppState;
 use aide::transform::TransformOperation;
 use axum::{Json, extract::State, http::StatusCode};
 use oar_domain::user::models::User;
-use oar_domain::user::ports::{PasswordService, TokenService, UserRepository};
-use std::sync::Arc;
 use tracing::{error, info, warn};
 
+/// Documents the register endpoint for OpenAPI
 pub fn docs(op: TransformOperation) -> TransformOperation {
     op.summary("Register new user")
 }
 
+/// Handles user registration requests
 pub async fn handler(
     State(state): State<AppState>,
     Json(payload): Json<RegisterRequest>,

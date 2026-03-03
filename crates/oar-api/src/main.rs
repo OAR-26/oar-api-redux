@@ -8,7 +8,6 @@ use oar_infrastructure::repositories::user_repo::PostgresUserRepository;
 use oar_infrastructure::services::jwt_service::JwtServiceImpl;
 use oar_infrastructure::services::password_service::Argon2PasswordService;
 use std::sync::Arc;
-use tower_http::trace::TraceLayer;
 
 use aide::openapi::SecurityScheme;
 

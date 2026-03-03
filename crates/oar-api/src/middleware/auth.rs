@@ -43,7 +43,7 @@ where
     }
 }
 
-// Factory — captures token_service, returns a closure axum can use with from_fn
+/// Creates an authentication middleware factory that captures the token service
 pub fn auth_middleware(
     token_service: Arc<dyn TokenService>,
 ) -> impl Fn(

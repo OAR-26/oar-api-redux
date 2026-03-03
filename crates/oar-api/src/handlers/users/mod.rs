@@ -4,18 +4,19 @@ use aide::axum::{
     ApiRouter,
     routing::{get_with, post_with},
 };
-use axum::middleware;
 
+/// User-related data transfer objects
 pub mod dtos;
 mod get_user;
 mod login;
 mod register;
 
+/// Creates the user API router with public and protected routes
 pub fn router(state: &AppState) -> ApiRouter<AppState> {
     // Routes that require auth
     let protected = ApiRouter::new()
         .api_route("/{id}", get_with(get_user::handler, get_user::docs))
-        .route_layer(middleware::from_fn(
+        .route_layer(axum::middleware::from_fn(
             auth_middleware(state.token_service.clone()), // ← captured here, no State needed
         ));
 
