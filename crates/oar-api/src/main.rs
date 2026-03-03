@@ -2,9 +2,10 @@ use crate::config::Config;
 use aide::openapi::{Info, OpenApi};
 use axum::Extension;
 use oar_domain::user::ports::{PasswordService, TokenService, UserRepository};
+use oar_infrastructure::database::create_pool;
 use oar_infrastructure::repositories::user_repo::PostgresUserRepository;
-use oar_infrastructure::services::jwt_service::Argon2PasswordService;
-use oar_infrastructure::services::password_service::JwtServiceImpl;
+use oar_infrastructure::services::jwt_service::JwtServiceImpl;
+use oar_infrastructure::services::password_service::Argon2PasswordService;
 use std::sync::Arc;
 use tower_http::trace::TraceLayer;
 
@@ -19,7 +20,7 @@ async fn main() {
             std::env::set_var("RUST_LOG", "oar_api=debug,axum=debug,sqlx=debug");
         }
     }
-    
+
     tracing_subscriber::fmt()
         .with_target(true)
         .with_line_number(true)
@@ -35,7 +36,12 @@ async fn main() {
         config.database_url
     );
 
-    let user_repo = PostgresUserRepository::new();
+    // Create database pool
+    let pool = create_pool(&config.database_url)
+        .await
+        .expect("Failed to create database pool");
+
+    let user_repo = PostgresUserRepository::new(pool);
     let user_repo_state: Arc<dyn UserRepository> = Arc::new(user_repo);
 
     let jwt_service =

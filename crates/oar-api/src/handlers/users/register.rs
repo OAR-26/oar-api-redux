@@ -22,15 +22,10 @@ pub async fn handler(
 
     info!("Registration attempt for email: {}", payload.email);
 
-    // Check if user already exists
-    // Note: This is a simplified check - in a real implementation you'd query by email
-    let existing_user = user_repo
-        .find_by_id(uuid::Uuid::new_v4())
-        .await
-        .map_err(|e| {
-            error!("Database error while checking existing user: {}", e);
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?;
+    let existing_user = user_repo.find_by_email(&payload.email).await.map_err(|e| {
+        error!("Database error while checking existing user: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
 
     if existing_user.is_some() {
         warn!("Registration attempt for existing email: {}", payload.email);
