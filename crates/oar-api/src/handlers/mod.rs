@@ -1,23 +1,26 @@
+use crate::state::AppState;
 use aide::{
-    axum::{
-        ApiRouter, IntoApiResponse,
-        routing::get,
-    },
+    axum::{ApiRouter, IntoApiResponse, routing::get},
     openapi::OpenApi,
+    scalar::Scalar,
     swagger::Swagger,
 };
 use axum::{Extension, Json};
-use oar_domain::users::ports::UserRepository;
-use std::sync::Arc;
+use tower_http::trace::TraceLayer;
 mod users;
 
+/// Serves the OpenAPI specification
 async fn serve_api(Extension(api): Extension<OpenApi>) -> impl IntoApiResponse {
     Json(api)
 }
-pub fn app_router() -> ApiRouter<Arc<dyn UserRepository>> {
-    ApiRouter::new()
-        .route("/swagger", Swagger::new("/api.json").axum_route())
-        .route("/api.json", get(serve_api))
-        .nest("/users", users::router())
 
+/// Creates the main application router with all routes and middleware
+pub fn app_router(app_state: AppState) -> ApiRouter {
+    ApiRouter::new()
+        .route("/docs", Scalar::new("/api.json").axum_route())
+        .route("/docs/swagger", Swagger::new("/api.json").axum_route())
+        .route("/api.json", get(serve_api))
+        .nest("/users", users::router(&app_state))
+        .layer(TraceLayer::new_for_http())
+        .with_state(app_state)
 }
