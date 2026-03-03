@@ -1,4 +1,3 @@
-
 //  basic to get things started
 #[derive(Debug, Clone)]
 pub struct User {
@@ -7,4 +6,3 @@ pub struct User {
     pub username: String,
     pub password_hash: String,
 }
-

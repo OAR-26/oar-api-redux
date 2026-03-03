@@ -3,8 +3,6 @@ use crate::state::AppState;
 use aide::openapi::{Info, OpenApi, ReferenceOr};
 use axum::Extension;
 use indexmap::IndexMap;
-use oar_domain::iam::ports::{PasswordService, TokenService};
-use oar_domain::user::ports::UserRepository;
 use oar_infrastructure::database::create_pool;
 use oar_infrastructure::repositories::user_repo::PostgresUserRepository;
 use oar_infrastructure::services::jwt_service::JwtServiceImpl;
