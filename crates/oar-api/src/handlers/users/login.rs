@@ -17,8 +17,7 @@ pub async fn handler(
     let AppState {
         user_repo,
         api_key_repo,
-        password_service,
-        token_service,
+        auth_service,
     } = state;
 
     info!("Login attempt for email: {}", payload.email);
@@ -36,7 +35,7 @@ pub async fn handler(
         })?;
 
     // Verify password
-    let password_valid = password_service
+    let password_valid = auth_service
         .verify_password(&payload.password, &user.password_hash)
         .await
         .map_err(|e| {
@@ -50,7 +49,7 @@ pub async fn handler(
     }
 
     // Generate JWT token
-    let token = token_service.generate_token(user.id).await.map_err(|e| {
+    let token = auth_service.generate_token(user.id).await.map_err(|e| {
         error!("Token generation error: {}", e);
         StatusCode::INTERNAL_SERVER_ERROR
     })?;

@@ -17,3 +17,13 @@ pub struct Claims {
     pub exp: i64,
     pub role: String,
 }
+
+pub struct AuthIdentity {
+    pub user_id: uuid::Uuid,
+    pub role: String,
+}
+
+pub enum AuthCredential {
+    BearerToken(String),
+    ApiKey(String),
+}

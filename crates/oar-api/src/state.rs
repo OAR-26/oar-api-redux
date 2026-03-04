@@ -1,6 +1,6 @@
 use axum::extract::FromRef;
 use oar_domain::{
-    iam::ports::{ApiKeyRepository, PasswordService, TokenService},
+    iam::ports::{ApiKeyRepository, AuthService},
     user::ports::UserRepository,
 };
 use std::sync::Arc;
@@ -10,22 +10,19 @@ use std::sync::Arc;
 pub struct AppState {
     pub user_repo: Arc<dyn UserRepository>,
     pub api_key_repo: Arc<dyn ApiKeyRepository>,
-    pub password_service: Arc<dyn PasswordService>,
-    pub token_service: Arc<dyn TokenService>,
+    pub auth_service: Arc<dyn AuthService>,
 }
 
 impl AppState {
     pub fn new(
         user_repo: Arc<dyn UserRepository>,
         api_key_repo: Arc<dyn ApiKeyRepository>,
-        password_service: Arc<dyn PasswordService>,
-        token_service: Arc<dyn TokenService>,
+        auth_service: Arc<dyn AuthService>,
     ) -> Self {
         Self {
             user_repo,
             api_key_repo,
-            password_service,
-            token_service,
+            auth_service,
         }
     }
 }
@@ -37,20 +34,14 @@ impl FromRef<AppState> for Arc<dyn UserRepository> {
     }
 }
 
-impl FromRef<AppState> for Arc<dyn PasswordService> {
-    fn from_ref(state: &AppState) -> Self {
-        state.password_service.clone()
-    }
-}
-
-impl FromRef<AppState> for Arc<dyn TokenService> {
-    fn from_ref(state: &AppState) -> Self {
-        state.token_service.clone()
-    }
-}
-
 impl FromRef<AppState> for Arc<dyn ApiKeyRepository> {
     fn from_ref(state: &AppState) -> Self {
         state.api_key_repo.clone()
+    }
+}
+
+impl FromRef<AppState> for Arc<dyn AuthService> {
+    fn from_ref(state: &AppState) -> Self {
+        state.auth_service.clone()
     }
 }

@@ -33,6 +33,8 @@ pub enum AuthError {
     #[error("Invalid API key")]
     InvalidApiKey,
 
+    #[error("Invalid Scheme")]
+    InvalidScheme,
     // --- Generic infrastructure failure ---
     #[error("Database error: {0}")]
     Database(#[from] sqlx::Error),

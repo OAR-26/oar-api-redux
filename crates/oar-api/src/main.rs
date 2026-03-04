@@ -3,12 +3,10 @@ use crate::state::AppState;
 use aide::openapi::{Info, OpenApi, ReferenceOr};
 use axum::Extension;
 use indexmap::IndexMap;
-use oar_domain::iam::ports::ApiKeyRepository;
 use oar_infrastructure::database::create_pool;
 use oar_infrastructure::repositories::iam_repo::PostgresApiKeyRepository;
 use oar_infrastructure::repositories::user_repo::PostgresUserRepository;
-use oar_infrastructure::services::jwt_service::JwtServiceImpl;
-use oar_infrastructure::services::password_service::Argon2PasswordService;
+use oar_infrastructure::services::auth_service::AuthServiceImpl;
 use std::sync::Arc;
 
 use aide::openapi::SecurityScheme;
@@ -47,15 +45,16 @@ async fn main() {
         .await
         .expect("Failed to create database pool");
 
-    let app_state = AppState::new(
-        Arc::new(PostgresUserRepository::new(pool.clone())),
-        Arc::new(PostgresApiKeyRepository::new(pool.clone())),
-        Arc::new(Argon2PasswordService),
-        Arc::new(JwtServiceImpl::new(
-            config.jwt_secret.clone(),
-            config.token_expiration_seconds,
-        )),
-    );
+    let user_repo = Arc::new(PostgresUserRepository::new(pool.clone()));
+    let api_key_repo = Arc::new(PostgresApiKeyRepository::new(pool.clone()));
+
+    let auth_service = Arc::new(AuthServiceImpl::new(
+        config.jwt_secret,
+        config.token_expiration_seconds,
+        api_key_repo.clone(),
+    ));
+
+    let app_state = AppState::new(user_repo, api_key_repo, auth_service);
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     let mut api = OpenApi {

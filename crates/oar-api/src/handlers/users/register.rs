@@ -17,7 +17,7 @@ pub async fn handler(
 ) -> Result<Json<UserResponse>, StatusCode> {
     let AppState {
         user_repo,
-        password_service,
+        auth_service,
         ..
     } = state;
 
@@ -34,7 +34,7 @@ pub async fn handler(
     }
 
     // Hash password
-    let password_hash = password_service
+    let password_hash = auth_service
         .hash_password(&payload.password)
         .await
         .map_err(|e| {

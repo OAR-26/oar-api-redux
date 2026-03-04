@@ -17,8 +17,7 @@ pub fn router(state: &AppState) -> ApiRouter<AppState> {
     let protected = ApiRouter::new()
         .api_route("/{id}", get_with(get_user::handler, get_user::docs))
         .route_layer(axum::middleware::from_fn(auth_middleware(
-            state.token_service.clone(),
-            state.api_key_repo.clone(),
+            state.auth_service.clone(),
         )));
 
     // Routes that don't require auth
