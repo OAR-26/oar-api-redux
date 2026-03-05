@@ -1,15 +1,45 @@
 use super::{entities::*, value_objects::*};
-use chrono::NaiveDateTime;
 
 pub struct Job {
     pub id: JobId,
+    pub array_id: i32,
+    pub array_index: i32,
     pub name: Option<String>,
     pub user: String,
     pub project: String,
+    pub group: String,
     pub state: JobState,
-    pub submission_time: NaiveDateTime,
-    // Aggregated Entities
+    pub job_type: JobType,
+    pub reservation: ReservationState,
+    pub queue_name: String,
+    pub command: Option<String>,
+    pub initial_request: Option<String>,
+    pub properties: Option<String>,
+    pub launching_directory: String,
+    pub stdout_file: Option<String>,
+    pub stderr_file: Option<String>,
+    pub message: String,
+    pub scheduler_info: String,
+    pub submission_time: i64, // unix epoch
+    pub start_time: i64,
+    pub stop_time: i64,
+    pub exit_code: Option<i32>,
+    pub checkpoint: i32,
+    pub checkpoint_signal: i32,
+    pub resubmit_job_id: i32,
+    pub accounted: bool,
+    pub suspended: bool,
+    pub assigned_moldable_job: i32,
+    pub file_id: Option<i32>,
+    pub notify: Option<String>,
+    pub last_karma: Option<f32>,
+    pub info_type: Option<String>,
+    pub env: Option<String>,
+    // Aggregated entities
     pub descriptions: Vec<MoldableDescription>,
     pub dependencies: Vec<JobDependency>,
     pub state_logs: Vec<JobStateLog>,
+    pub frag: Option<FragJob>,
+    pub walltime_change: Option<WalltimeChange>,
+    pub challenge: Option<Challenge>,
 }
