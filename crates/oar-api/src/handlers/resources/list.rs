@@ -12,9 +12,13 @@ use tracing::{error, info};
 
 pub async fn handler(
     _current_user: CurrentUser,
-    Query(query): Query<ResourceStateQuery>,
     State(resource_repo): State<Arc<dyn ResourceRepository>>,
 ) -> Result<Json<Vec<ResourceResponse>>, StatusCode> {
+    let query = ResourceStateQuery {
+        state: Some("1".to_string()),
+        network_address: Some("2".to_string()),
+    };
+
     let resources = match query.network_address {
         Some(addr) => resource_repo.find_by_network_address(&addr).await,
         None => resource_repo.find_all().await,

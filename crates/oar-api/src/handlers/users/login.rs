@@ -16,8 +16,8 @@ pub async fn handler(
 ) -> Result<Json<AuthResponse>, StatusCode> {
     let AppState {
         user_repo,
-        api_key_repo,
         auth_service,
+        ..
     } = state;
 
     info!("Login attempt for email: {}", payload.email);

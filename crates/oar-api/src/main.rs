@@ -49,8 +49,7 @@ async fn main() {
 
     let user_repo = Arc::new(PostgresUserRepository::new(pool.clone()));
     let api_key_repo = Arc::new(PostgresApiKeyRepository::new(pool.clone()));
-    let resource_repo: Arc<dyn ResourceRepository> =
-        Arc::new(PostgresResourceRepository::new(pool.clone()));
+    let resource_repo = Arc::new(PostgresResourceRepository::new(pool.clone()));
 
     let auth_service = Arc::new(AuthServiceImpl::new(
         config.jwt_secret,
@@ -64,7 +63,7 @@ async fn main() {
     let mut api = OpenApi {
         info: Info {
             title: "OAR 3 API".to_string(),
-            description: Some("description".to_string()),
+            description: Some("the web API layer for OAR.".to_string()),
             ..Info::default()
         },
         ..OpenApi::default()
