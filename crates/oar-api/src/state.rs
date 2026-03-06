@@ -1,16 +1,15 @@
 use axum::extract::FromRef;
-use oar_domain::{
-    iam::ports::{ApiKeyRepository, AuthService},
-    user::ports::UserRepository,
-};
+use oar_domain::iam::ports::{ApiKeyRepository, AuthService};
+use oar_domain::resource::ports::ResourceRepository;
+use oar_domain::user::ports::UserRepository;
 use std::sync::Arc;
 
-/// Application state containing all service dependencies
 #[derive(Clone)]
 pub struct AppState {
     pub user_repo: Arc<dyn UserRepository>,
     pub api_key_repo: Arc<dyn ApiKeyRepository>,
     pub auth_service: Arc<dyn AuthService>,
+    pub resource_repo: Arc<dyn ResourceRepository>, // ← add
 }
 
 impl AppState {
@@ -18,30 +17,34 @@ impl AppState {
         user_repo: Arc<dyn UserRepository>,
         api_key_repo: Arc<dyn ApiKeyRepository>,
         auth_service: Arc<dyn AuthService>,
+        resource_repo: Arc<dyn ResourceRepository>,
     ) -> Self {
         Self {
             user_repo,
             api_key_repo,
             auth_service,
+            resource_repo,
         }
     }
 }
 
-// Teach axum how to pull each sub-component out of AppState
 impl FromRef<AppState> for Arc<dyn UserRepository> {
-    fn from_ref(state: &AppState) -> Self {
-        state.user_repo.clone()
+    fn from_ref(s: &AppState) -> Self {
+        s.user_repo.clone()
     }
 }
-
 impl FromRef<AppState> for Arc<dyn ApiKeyRepository> {
-    fn from_ref(state: &AppState) -> Self {
-        state.api_key_repo.clone()
+    fn from_ref(s: &AppState) -> Self {
+        s.api_key_repo.clone()
     }
 }
-
 impl FromRef<AppState> for Arc<dyn AuthService> {
-    fn from_ref(state: &AppState) -> Self {
-        state.auth_service.clone()
+    fn from_ref(s: &AppState) -> Self {
+        s.auth_service.clone()
+    }
+}
+impl FromRef<AppState> for Arc<dyn ResourceRepository> {
+    fn from_ref(s: &AppState) -> Self {
+        s.resource_repo.clone()
     }
 }

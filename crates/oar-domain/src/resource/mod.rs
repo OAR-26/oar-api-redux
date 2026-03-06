@@ -1,7 +1,7 @@
 mod aggregate;
 mod entities;
 pub mod ports;
-mod value_objects;
+pub mod value_objects;
 
 pub use aggregate::Resource;
 pub use entities::ResourceLog;

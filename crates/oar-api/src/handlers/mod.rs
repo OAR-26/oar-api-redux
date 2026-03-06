@@ -8,6 +8,7 @@ use aide::{
 use axum::{Extension, Json};
 use tower_http::trace::TraceLayer;
 mod api_keys;
+mod resources;
 mod users;
 
 /// Serves the OpenAPI specification
@@ -22,6 +23,7 @@ pub fn app_router(app_state: AppState) -> ApiRouter {
         .route("/docs/swagger", Swagger::new("/api.json").axum_route())
         .route("/api.json", get(serve_api))
         .nest("/users", users::router(&app_state))
+        .nest("/resources", resources::router())
         .nest("/api-keys", api_keys::router())
         .layer(TraceLayer::new_for_http())
         .with_state(app_state)

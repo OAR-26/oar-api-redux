@@ -3,8 +3,10 @@ use crate::state::AppState;
 use aide::openapi::{Info, OpenApi, ReferenceOr};
 use axum::Extension;
 use indexmap::IndexMap;
+use oar_domain::resource::ports::ResourceRepository;
 use oar_infrastructure::database::create_pool;
 use oar_infrastructure::repositories::iam_repo::PostgresApiKeyRepository;
+use oar_infrastructure::repositories::resource_repo::PostgresResourceRepository;
 use oar_infrastructure::repositories::user_repo::PostgresUserRepository;
 use oar_infrastructure::services::auth_service::AuthServiceImpl;
 use std::sync::Arc;
@@ -47,6 +49,8 @@ async fn main() {
 
     let user_repo = Arc::new(PostgresUserRepository::new(pool.clone()));
     let api_key_repo = Arc::new(PostgresApiKeyRepository::new(pool.clone()));
+    let resource_repo: Arc<dyn ResourceRepository> =
+        Arc::new(PostgresResourceRepository::new(pool.clone()));
 
     let auth_service = Arc::new(AuthServiceImpl::new(
         config.jwt_secret,
@@ -54,7 +58,7 @@ async fn main() {
         api_key_repo.clone(),
     ));
 
-    let app_state = AppState::new(user_repo, api_key_repo, auth_service);
+    let app_state = AppState::new(user_repo, api_key_repo, auth_service, resource_repo);
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     let mut api = OpenApi {
@@ -87,11 +91,11 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
 
     tracing::info!("🚀 Server ready at http://{}", addr);
-    tracing::info!("🔎 Deep dive into the api with Scalar http://{}/docs", addr);
-    tracing::info!(
-        "😏 If you prefer Swagger instead: http://{}/docs/swagger",
-        addr
-    );
+    // tracing::info!(
+    //     "🔎 Deep dive into the api with Scalar http://{}/docs/scalar",
+    //     addr
+    // );
+    tracing::info!("Swagger link : http://{}/docs/swagger", addr);
 
     let app = handlers::app_router(app_state);
 
