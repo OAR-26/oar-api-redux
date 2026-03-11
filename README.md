@@ -62,5 +62,3 @@ Start in development mode with auto-reload:
 ```bash
 cargo watch -x run
 ```
-
-### 🚧 README still work in progress ⏳ 🚧
